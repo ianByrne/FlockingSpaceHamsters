@@ -18,7 +18,7 @@ public class Critter : RigidBody
     
     public override void _IntegrateForces(PhysicsDirectBodyState state)
     {
-        IList<Critter> neighbours = GetNeighbours();
+        IList<Neighbour> neighbours = GetNeighbours();
         
         // Turn critter to point in appropriate direction
         // currentHeading is a point directly in front of the critter in world coordinates
@@ -40,9 +40,9 @@ public class Critter : RigidBody
         state.ApplyCentralImpulse(forwardForce);
     }
 
-    private IList<Critter> GetNeighbours()
+    private IList<Neighbour> GetNeighbours()
     {
-        IList<Critter> neighbours = new List<Critter>();
+        IList<Neighbour> neighbours = new List<Neighbour>();
 
         var critters = GetTree().GetNodesInGroup("critters");
         
@@ -53,9 +53,13 @@ public class Critter : RigidBody
                 continue;
             }
 
-            if(critter.Translation.DistanceSquaredTo(this.Translation) <= perceptionRadius)
+            if(critter.Transform.origin.DistanceSquaredTo(this.Transform.origin) <= perceptionRadius)
             {
-                neighbours.Add(critter);
+                neighbours.Add(new Neighbour()
+                {
+                    WorldPosition = critter.Transform.origin,
+                    LocalHeading = -critter.Transform.basis.z
+                });
             }
         }
 
@@ -76,7 +80,7 @@ public class Critter : RigidBody
         return forwardForce;
     }
 
-    private Vector3 GetFlockingHeading(Vector3 currentHeading, IList<Critter> neighbours)
+    private Vector3 GetFlockingHeading(Vector3 currentHeading, IList<Neighbour> neighbours)
     {
         Vector3 flockingHeading = Vector3.Zero;
 
@@ -91,18 +95,18 @@ public class Critter : RigidBody
             foreach(var neighbour in neighbours)
             {
                 // Align
-                alignment += -neighbour.Transform.basis.z;
+                alignment += neighbour.LocalHeading;
 
                 // Close neighbours
-                if(this.Transform.origin.DistanceSquaredTo(neighbour.Transform.origin) < closePerceptionRadius)
+                if(this.Transform.origin.DistanceSquaredTo(neighbour.WorldPosition) < closePerceptionRadius)
                 {
                     // Cohere
-                    cohesion += neighbour.Transform.origin;
+                    cohesion += neighbour.WorldPosition;
 
                     // Separate - closer neighbours have greater effect
-                    Vector3 desiredPosition = this.Transform.origin + (this.Transform.origin - neighbour.Transform.origin);
+                    Vector3 desiredPosition = this.Transform.origin + (this.Transform.origin - neighbour.WorldPosition);
 
-                    float distance = this.Transform.origin.DistanceSquaredTo(neighbour.Transform.origin);
+                    float distance = this.Transform.origin.DistanceSquaredTo(neighbour.WorldPosition);
 
                     if(distance > 0.0f)
                     {

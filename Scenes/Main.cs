@@ -12,7 +12,7 @@ public class Main : Spatial
 
         // Spawn some critters
 
-        int critterCount = 20;
+        int critterCount = 50;
 
         Random rnd = new Random();
         critterScene = (PackedScene)ResourceLoader.Load("res://Scenes/Critter.tscn");

@@ -4,16 +4,31 @@ using System.Collections.Generic;
 
 public class Critter : RigidBody
 {
-    private float maxSpeed = 16.0f;
-    private float maxForce = 0.09f;
-    private float perceptionRadius = 150.0f;
-    private float closePerceptionRadius = 70.5f;
+    private float maxSpeed = 10.0f;
+    private float maxForce = 0.1f;
+    private float perceptionRadius = 10.0f;
+    private float closePerceptionRadius = 5.5f;
 
     public override void _Ready()
     {
-        AddToGroup("critters");
+        this.AddToGroup("critters");
 
         this.SetAngularDamp(0.8f);
+
+        // Create perception bubble mesh
+        var material = new SpatialMaterial();
+        material.FlagsTransparent = true;
+        material.AlbedoColor = new Color(1.0f, 1.0f, 1.0f, 0.02f);
+
+        var sphereMesh = new SphereMesh();
+        sphereMesh.Material = material;
+        sphereMesh.Radius = this.perceptionRadius;
+        sphereMesh.Height = this.perceptionRadius * 2.0f;
+
+        var meshInstance = new MeshInstance();
+        meshInstance.Mesh = sphereMesh;
+
+        this.AddChild(meshInstance);
     }
     
     public override void _IntegrateForces(PhysicsDirectBodyState state)
@@ -21,28 +36,27 @@ public class Critter : RigidBody
         IList<Neighbour> neighbours = GetNeighbours();
         
         // Turn critter to point in appropriate direction
-        // currentHeading is a point directly in front of the critter in world coordinates
-        var currentHeading = state.Transform.origin - state.Transform.basis.z;
-        var newHeading = currentHeading;
-        newHeading += GetComeBackHeading(currentHeading);
-        newHeading += GetFlockingHeading(currentHeading, neighbours);
+        // desiredPosition starts a point directly in front of the critter in world coordinates
+        var desiredPosition = state.Transform.origin - state.Transform.basis.z;
+        desiredPosition += GetComeBackDesiredPosition(state.Transform.origin) * 2.5f;
+        desiredPosition += GetFlockingDesiredPosition(state.Transform.origin, neighbours);
 
         var currentQuat = state.Transform.basis.Quat();
-        var headingQuat = state.Transform.LookingAt(newHeading, Vector3.Up).basis.Quat();
+        var headingQuat = state.Transform.LookingAt(desiredPosition, Vector3.Up).basis.Quat();
         var newQuat = currentQuat.Slerp(headingQuat, maxForce);
 
-        Transform trans = new Transform(new Basis(newQuat), state.Transform.origin);
+        var trans = new Transform(new Basis(newQuat), state.Transform.origin);
 
         state.SetTransform(trans);
 
         // Push critter in direction that it's facing
-        Vector3 forwardForce = GetForwardForce(state);
+        var forwardForce = GetForwardForce(-state.Transform.basis.z, state.LinearVelocity);
         state.ApplyCentralImpulse(forwardForce);
     }
 
     private IList<Neighbour> GetNeighbours()
     {
-        IList<Neighbour> neighbours = new List<Neighbour>();
+        var neighbours = new List<Neighbour>();
 
         var critters = GetTree().GetNodesInGroup("critters");
         
@@ -66,54 +80,51 @@ public class Critter : RigidBody
         return neighbours;
     }
 
-    private Vector3 GetForwardForce(PhysicsDirectBodyState state)
+    private Vector3 GetForwardForce(Vector3 heading, Vector3 linearVelocity)
     {
-        // Move in "heading" direction
-        Vector3 forwardForce = -state.Transform.basis.z;
-
-        // At max speed
-        forwardForce = SetLength(forwardForce, maxSpeed);
+        // Move at max speed
+        var forwardForce = SetLength(heading, maxSpeed);
 
         // Remove current velocity so as to not compound it each loop 
-        forwardForce -= state.LinearVelocity;
+        forwardForce -= linearVelocity;
 
         return forwardForce;
     }
 
-    private Vector3 GetFlockingHeading(Vector3 currentHeading, IList<Neighbour> neighbours)
+    private Vector3 GetFlockingDesiredPosition(Vector3 currentPosition, IList<Neighbour> neighbours)
     {
-        Vector3 flockingHeading = Vector3.Zero;
+        var flockingHeading = Vector3.Zero;
 
         if(neighbours != null && neighbours.Count > 0)
         {
-            Vector3 alignment = Vector3.Zero;
-            Vector3 cohesion = Vector3.Zero;
-            Vector3 separation = Vector3.Zero;
+            var alignment = Vector3.Zero;
+            var cohesion = Vector3.Zero;
+            var separation = Vector3.Zero;
 
             int closeNeighbourCount = 0;
 
             foreach(var neighbour in neighbours)
             {
                 // Align
-                alignment += neighbour.LocalHeading;
+                alignment += currentPosition + neighbour.LocalHeading;
 
                 // Close neighbours
-                if(this.Transform.origin.DistanceSquaredTo(neighbour.WorldPosition) < closePerceptionRadius)
+                if(currentPosition.DistanceSquaredTo(neighbour.WorldPosition) < closePerceptionRadius)
                 {
                     // Cohere
                     cohesion += neighbour.WorldPosition;
 
                     // Separate - closer neighbours have greater effect
-                    Vector3 desiredPosition = this.Transform.origin + (this.Transform.origin - neighbour.WorldPosition);
+                    Vector3 desiredSeparation = currentPosition + (currentPosition - neighbour.WorldPosition);
 
-                    float distance = this.Transform.origin.DistanceSquaredTo(neighbour.WorldPosition);
+                    float distance = currentPosition.DistanceSquaredTo(neighbour.WorldPosition);
 
                     if(distance > 0.0f)
                     {
-                        desiredPosition /= distance;
+                        desiredSeparation /= distance;
                     }
 
-                    separation += desiredPosition;
+                    separation += desiredSeparation;
 
                     ++closeNeighbourCount;
                 }
@@ -124,43 +135,49 @@ public class Critter : RigidBody
             if(closeNeighbourCount > 0)
             {
                 cohesion /= closeNeighbourCount;
-                cohesion -= currentHeading;
-                cohesion = cohesion.Normalized();
+                // cohesion = cohesion.Normalized();
 
                 separation /= closeNeighbourCount;
-                separation = separation.Normalized();
+                // separation = separation.Normalized();
             }
 
             // Add all the forces
             flockingHeading += alignment;
             flockingHeading += cohesion;
-            flockingHeading += separation;
+            flockingHeading += separation * 2.5f;
         }
 
         return flockingHeading;
     }
 
-    private Vector3 GetComeBackHeading(Vector3 currentHeading)
+    private Vector3 GetComeBackDesiredPosition(Vector3 currentPosition)
     {
-        var newHeading = Vector3.Zero;
+        var desiredPosition = Vector3.Zero;
         
-        Vector3 attractionPoint = new Vector3(0, 0, 0);
+        var attractionPoint = new Vector3(0, 0, 0);
 
-        float distance = this.Translation.DistanceSquaredTo(attractionPoint);
+        float distance = currentPosition.DistanceSquaredTo(attractionPoint);
 
         if(distance > 500.0f)
         {
-            newHeading = attractionPoint - currentHeading;
+            desiredPosition = attractionPoint - currentPosition;
         }
 
-        return newHeading.Normalized();
+        return desiredPosition;
     }
 
     private Vector3 SetLength(Vector3 vector, float length)
     {
         if(vector.LengthSquared() > 0 && length > 0)
         {
-            vector = vector.Normalized() * length;
+            if(!vector.IsNormalized())
+            {
+                vector = vector.Normalized() * length;
+            }
+            else
+            {
+                vector *= length;
+            }
         }
 
         return vector;

@@ -53,7 +53,7 @@
     <Compile Include="Scenes\Critter.cs" />
     <Compile Include="Scenes\Main.cs" />
     <Compile Include="Scenes\MainCamera.cs" />
-    <Compile Include="Scripts\Neighbour.cs" />
+    <Compile Include="Model\Neighbour.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

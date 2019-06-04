@@ -3,10 +3,46 @@ using System;
 
 public class Main : Spatial
 {
+    private PackedScene critterScene;
+
     public override void _Ready()
     {
         // Prevent the mouse cursor from running off screen (and also hide it)
         Input.SetMouseMode(Input.MouseMode.Captured);
+
+        // Spawn some critters
+
+        int critterCount = 20;
+
+        Random rnd = new Random();
+        critterScene = (PackedScene)ResourceLoader.Load("res://Scenes/Critter.tscn");
+
+        for (int i = 0; i < critterCount; ++i)
+        {
+            Critter critter = (Critter)critterScene.Instance();
+
+            // Vector3 position = new Vector3(0,0,0);
+            Vector3 position = new Vector3();
+            position.x = rnd.Next(-50, 50);
+            position.y = rnd.Next(-50, 50);
+            position.z = rnd.Next(-50, 50);
+
+            // Vector3 linearVelocity = new Vector3(0,0,0);
+            Vector3 linearVelocity = new Vector3();
+            linearVelocity.x = rnd.Next(-5, 5);
+            linearVelocity.y = rnd.Next(-5, 5);
+            linearVelocity.z = rnd.Next(-5, 5);
+
+            Transform transform = Transform.Identity;
+            transform = transform.Translated(position);
+            // transform = transform.LookingAt(new Vector3(1,0,0), Vector3.Up);
+            transform = transform.LookingAt(position + linearVelocity, Vector3.Up);
+
+            critter.SetTransform(transform);
+            critter.SetLinearVelocity(linearVelocity);
+
+            CallDeferred("add_child", critter);
+        }
     }
 
     public override void _Process(float delta)

@@ -3,7 +3,7 @@ using System;
 
 public class MainCamera : Camera
 {
-    private const float cameraSpeed = 4.0f;
+    private const float cameraSpeed = 10.0f;
     private const float spinSpeed = 0.1f;
     private const float mouseSensitivity = 0.1f;
     private const float mouseSmoothness = 0.5f;

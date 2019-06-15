@@ -11,8 +11,7 @@ public class Main : Spatial
         Input.SetMouseMode(Input.MouseMode.Captured);
 
         // Spawn some critters
-
-        int critterCount = 50;
+        int critterCount = 20;
 
         Random rnd = new Random();
         critterScene = (PackedScene)ResourceLoader.Load("res://Scenes/Critter.tscn");
@@ -27,7 +26,7 @@ public class Main : Spatial
             position.y = rnd.Next(-50, 50);
             position.z = rnd.Next(-50, 50);
 
-            // Vector3 linearVelocity = new Vector3(0,0,0);
+            // Vector3 linearVelocity = new Vector3(-1,-1,-1);
             Vector3 linearVelocity = new Vector3();
             linearVelocity.x = rnd.Next(-5, 5);
             linearVelocity.y = rnd.Next(-5, 5);
@@ -40,19 +39,16 @@ public class Main : Spatial
 
             critter.SetTransform(transform);
             critter.SetLinearVelocity(linearVelocity);
+            critter.PauseMode = PauseModeEnum.Stop;
+            critter.SetRayPickable(true);
 
             CallDeferred("add_child", critter);
         }
     }
 
-    public override void _Process(float delta)
+    public override void _UnhandledInput(InputEvent @event)
     {
-        ProcessInput();
-    }
-
-    private void ProcessInput()
-    {
-        if(Input.IsActionPressed("exit"))
+        if(@event.IsActionPressed("exit"))
         {
             GetTree().Quit();
         }

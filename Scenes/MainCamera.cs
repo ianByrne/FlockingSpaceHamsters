@@ -14,19 +14,16 @@ public class MainCamera : Camera
     private float pitch = 0.0f;
     private float totalPitch = 0.0f;
 
-
     public override void _PhysicsProcess(float delta)
     {
         ProcessKeyInput(delta);
         ProcessMouseInput(delta);
     }
 
-    public override void _UnhandledInput(InputEvent @event)
+    public override void _Input(InputEvent @event)
     {
-        if(@event is InputEventMouseMotion)
+        if(@event is InputEventMouseMotion mouseEvent)
         {
-            InputEventMouseMotion mouseEvent = (InputEventMouseMotion)@event;
-
             mousePosition = mouseEvent.Relative;
         }
     }

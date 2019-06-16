@@ -219,10 +219,15 @@ public class Critter : RigidBody
 
         var spaceState = GetWorld().DirectSpaceState;
 
-        var perceptionShape = GetNode<MeshInstance>("perceptionMesh");
+        var perceptionShape = GetNode("perceptionMesh") as MeshInstance;
+
+        if(perceptionShape == null)
+        {
+            return;
+        }
 
         PhysicsShapeQueryParameters collisionShape = new PhysicsShapeQueryParameters();
-        collisionShape.SetTransform(perceptionShape.GetGlobalTransform());
+        collisionShape.SetTransform(perceptionShape.GetGlobalTransform());;
         collisionShape.SetShape(perceptionShape.Mesh.CreateConvexShape());
 
         var result = spaceState.IntersectShape(collisionShape);

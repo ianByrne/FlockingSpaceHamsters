@@ -22,15 +22,15 @@ public class Main : Spatial
 
             // Vector3 position = new Vector3(0,0,0);
             Vector3 position = new Vector3();
-            position.x = rnd.Next(-50, 50);
-            position.y = rnd.Next(-50, 50);
-            position.z = rnd.Next(-50, 50);
+            position.x = 0.5f + rnd.Next(-50, 50);
+            position.y = 0.5f + rnd.Next(-50, 50);
+            position.z = 0.5f + rnd.Next(-50, 50);
 
             // Vector3 linearVelocity = new Vector3(-1,-1,-1);
             Vector3 linearVelocity = new Vector3();
-            linearVelocity.x = rnd.Next(-5, 5);
-            linearVelocity.y = rnd.Next(-5, 5);
-            linearVelocity.z = rnd.Next(-5, 5);
+            linearVelocity.x = 0.5f + rnd.Next(-5, 5);
+            linearVelocity.y = 0.5f + rnd.Next(-5, 5);
+            linearVelocity.z = 0.5f + rnd.Next(-5, 5);
 
             Transform transform = Transform.Identity;
             transform = transform.Translated(position);
@@ -40,7 +40,6 @@ public class Main : Spatial
             critter.SetTransform(transform);
             critter.SetLinearVelocity(linearVelocity);
             critter.PauseMode = PauseModeEnum.Stop;
-            critter.SetRayPickable(true);
 
             CallDeferred("add_child", critter);
         }

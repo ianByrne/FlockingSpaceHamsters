@@ -49,12 +49,12 @@ public class CritterDeets : Control
 
                 if(critter != null)
                 {
-                    critter.Selected = true;
+                    critter.SetSelected(true);
                 }
             }
             else if(critter != null)
             {
-                critter.Selected = false;
+                critter.SetSelected(false);
                 critter = null;
             }
         }

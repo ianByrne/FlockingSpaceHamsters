@@ -23,10 +23,12 @@ public class Critter : RigidBody
     public int CloseNeighbourCount { get; private set; }
 
     private IList<Neighbour> neighbours;
+    private IList<Obstacle> obstacles;
 
     public Critter()
     {
         neighbours = new List<Neighbour>();
+        obstacles = new List<Obstacle>();
     }
 
     public override void _Ready()
@@ -42,7 +44,7 @@ public class Critter : RigidBody
 
     public override void _PhysicsProcess(float delta)
     {
-        GetNeighbours();
+        GetNeighboursAndObstacles();
     }
     
     public override void _IntegrateForces(PhysicsDirectBodyState state)
@@ -50,8 +52,9 @@ public class Critter : RigidBody
         // Turn critter to point in appropriate direction
         // desiredPosition starts a point directly in front of the critter in world coordinates
         var desiredPosition = state.Transform.origin - state.Transform.basis.z;
-        desiredPosition += GetComeBackDesiredPosition(state.Transform.origin);
+        // desiredPosition += GetComeBackDesiredPosition(state.Transform.origin);
         desiredPosition += GetFlockingDesiredPosition(state.Transform.origin, neighbours);
+        desiredPosition += GetAvoidObstaclesPosition(state.Transform.origin, obstacles);
 
         var currentQuat = state.Transform.basis.Quat();
         var headingQuat = state.Transform.LookingAt(desiredPosition, Vector3.Up).basis.Quat();
@@ -213,9 +216,10 @@ public class Critter : RigidBody
         this.AddChild(line);
     }
 
-    private void GetNeighbours()
+    private void GetNeighboursAndObstacles()
     {
         neighbours = new List<Neighbour>();
+        obstacles = new List<Obstacle>();
 
         var spaceState = GetWorld().DirectSpaceState;
 
@@ -236,11 +240,14 @@ public class Critter : RigidBody
         {
             if(collision.ContainsKey("collider"))
             {
-                var critter = collision["collider"] as Critter;
-
-                if(critter != null && critter != this)
+                if(collision["collider"] is Critter critter && critter != this)
                 {
                     neighbours.Add(new Neighbour(critter));
+                    continue;
+                }
+                else if(collision["collider"] is StaticBody staticBody && staticBody.GetParent().Name == "Enclosure")
+                {
+                    obstacles.Add(new Obstacle(staticBody));
                 }
             }
         }
@@ -255,6 +262,13 @@ public class Critter : RigidBody
         forwardForce -= linearVelocity;
 
         return forwardForce;
+    }
+
+    private Vector3 GetAvoidObstaclesPosition(Vector3 currentPosition, IList<Obstacle> obstacles)
+    {
+        var avoidObstaclesPosition = Vector3.Zero;
+
+        return avoidObstaclesPosition;
     }
 
     private Vector3 GetFlockingDesiredPosition(Vector3 currentPosition, IList<Neighbour> neighbours)

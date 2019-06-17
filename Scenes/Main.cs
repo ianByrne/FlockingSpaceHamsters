@@ -22,9 +22,9 @@ public class Main : Spatial
 
             // Vector3 position = new Vector3(0,0,0);
             Vector3 position = new Vector3();
-            position.x = 0.5f + rnd.Next(-50, 50);
-            position.y = 0.5f + rnd.Next(-50, 50);
-            position.z = 0.5f + rnd.Next(-50, 50);
+            position.x = 0.5f + rnd.Next(-30, 30);
+            position.y = 0.5f + rnd.Next(-30, 30);
+            position.z = 0.5f + rnd.Next(-30, 30);
 
             // Vector3 linearVelocity = new Vector3(-1,-1,-1);
             Vector3 linearVelocity = new Vector3();

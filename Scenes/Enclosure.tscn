@@ -16,6 +16,7 @@ material = SubResource( 3 )
 [node name="Wall" type="StaticBody" parent="."]
 transform = Transform( 40, 0, 0, 0, 30, 0, 0, 0, 0.2, 0, 0, -40 )
 input_ray_pickable = false
+collision_layer = 3
 physics_material_override = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Wall"]
@@ -28,6 +29,7 @@ material/0 = null
 [node name="Wall2" type="StaticBody" parent="."]
 transform = Transform( 40, 0, 0, 0, 30, 0, 0, 0, 0.2, 0, 0, 40 )
 input_ray_pickable = false
+collision_layer = 3
 physics_material_override = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Wall2"]
@@ -40,6 +42,7 @@ material/0 = null
 [node name="Wall3" type="StaticBody" parent="."]
 transform = Transform( -1.74846e-006, 0, 0.2, 0, 30, 0, -40, 0, -8.74228e-009, 40, 0, 0 )
 input_ray_pickable = false
+collision_layer = 3
 physics_material_override = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Wall3"]
@@ -52,6 +55,7 @@ material/0 = null
 [node name="Wall4" type="StaticBody" parent="."]
 transform = Transform( -1.74846e-006, 0, 0.2, 0, 30, 0, -40, 0, -8.74228e-009, -40, 0, 0 )
 input_ray_pickable = false
+collision_layer = 3
 physics_material_override = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Wall4"]
@@ -64,6 +68,7 @@ material/0 = null
 [node name="Wall5" type="StaticBody" parent="."]
 transform = Transform( 40, 0, 0, 0, -1.74846e-006, -0.2, 0, 40, -8.74228e-009, 0, 30, 0 )
 input_ray_pickable = false
+collision_layer = 3
 physics_material_override = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Wall5"]
@@ -76,6 +81,7 @@ material/0 = null
 [node name="Wall6" type="StaticBody" parent="."]
 transform = Transform( 40, 0, 0, 0, -1.74846e-006, -0.2, 0, 40, -8.74228e-009, 0, -30, 0 )
 input_ray_pickable = false
+collision_layer = 3
 physics_material_override = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Wall6"]

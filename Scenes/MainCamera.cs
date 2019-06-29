@@ -3,6 +3,9 @@ using System;
 
 public class MainCamera : Camera
 {
+    public Transform TargetTransform { get; set; }
+    public bool FollowCritter { get; set; }
+
     private const float cameraSpeed = 10.0f;
     private const float spinSpeed = 0.1f;
     private const float mouseSensitivity = 0.1f;
@@ -18,6 +21,15 @@ public class MainCamera : Camera
     {
         ProcessKeyInput(delta);
         ProcessMouseInput(delta);
+    }
+
+    public override void _Process(float delta)
+    {
+        if(this.FollowCritter && this.TargetTransform != null)
+        {
+            var newTransform = this.Transform.InterpolateWith(this.TargetTransform, delta * 1.0f);
+            this.Transform = newTransform;
+        }
     }
 
     public override void _Input(InputEvent @event)

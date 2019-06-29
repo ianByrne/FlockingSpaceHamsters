@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 /*
 TODO: Add obstacles, sort out mystery crashes and errors, get tighter flocks with less crashes (more responsive to avoidance?)
+I don't really trust the current obstacle avoidance or separation logic.
 */
 
 public class Critter : RigidBody
@@ -23,12 +24,12 @@ public class Critter : RigidBody
     public int CloseNeighbourCount { get; private set; }
 
     private IList<Neighbour> neighbours;
-    private IList<Obstacle> obstacles;
+    private IList<Vector3> obstacles;
 
     public Critter()
     {
         neighbours = new List<Neighbour>();
-        obstacles = new List<Obstacle>();
+        obstacles = new List<Vector3>();
     }
 
     public override void _Ready()
@@ -52,13 +53,20 @@ public class Critter : RigidBody
         // Turn critter to point in appropriate direction
         // desiredPosition starts a point directly in front of the critter in world coordinates
         var desiredPosition = state.Transform.origin - state.Transform.basis.z;
-        // desiredPosition += GetComeBackDesiredPosition(state.Transform.origin);
+        desiredPosition += GetComeBackDesiredPosition(state.Transform.origin);
         desiredPosition += GetFlockingDesiredPosition(state.Transform.origin, neighbours);
-        desiredPosition += GetAvoidObstaclesPosition(state.Transform.origin, obstacles);
+        desiredPosition += GetAvoidObstaclesPosition(state.Transform.origin, obstacles) * 20.5f;
 
         var currentQuat = state.Transform.basis.Quat();
         var headingQuat = state.Transform.LookingAt(desiredPosition, Vector3.Up).basis.Quat();
-        var newQuat = currentQuat.Slerp(headingQuat, maxForce);
+
+        var force = maxForce;
+        if(obstacles.Count > 0)
+        {
+            force = 0.05f;
+        }
+
+        var newQuat = currentQuat.Slerp(headingQuat, force);
 
         var trans = new Transform(new Basis(newQuat), state.Transform.origin);
 
@@ -219,7 +227,7 @@ public class Critter : RigidBody
     private void GetNeighboursAndObstacles()
     {
         neighbours = new List<Neighbour>();
-        obstacles = new List<Obstacle>();
+        obstacles = new List<Vector3>();
 
         var spaceState = GetWorld().DirectSpaceState;
 
@@ -245,9 +253,15 @@ public class Critter : RigidBody
                     neighbours.Add(new Neighbour(critter));
                     continue;
                 }
-                else if(collision["collider"] is StaticBody staticBody && staticBody.GetParent().Name == "Enclosure")
+                else if(collision["collider"] is StaticBody staticBody && staticBody.IsInGroup("obstacles"))
                 {
-                    obstacles.Add(new Obstacle(staticBody));
+                    // Cast ray to object's origin to find where it hits
+                    var rayResult = spaceState.IntersectRay(this.Transform.origin, staticBody.Transform.origin);
+
+                    if(rayResult.Count > 0)
+                    {
+                        obstacles.Add((Vector3)rayResult["position"]);
+                    }
                 }
             }
         }
@@ -264,9 +278,22 @@ public class Critter : RigidBody
         return forwardForce;
     }
 
-    private Vector3 GetAvoidObstaclesPosition(Vector3 currentPosition, IList<Obstacle> obstacles)
+    private Vector3 GetAvoidObstaclesPosition(Vector3 currentPosition, IList<Vector3> obstacles)
     {
         var avoidObstaclesPosition = Vector3.Zero;
+
+        int obstacleCount = obstacles.Count;
+
+        if(obstacleCount > 0)
+        {
+            foreach(var obstacle in obstacles)
+            {
+                avoidObstaclesPosition += currentPosition - obstacle;
+            }
+
+            avoidObstaclesPosition /= obstacleCount;
+            avoidObstaclesPosition -= currentPosition;
+        }
 
         return avoidObstaclesPosition;
     }
@@ -291,7 +318,7 @@ public class Critter : RigidBody
                 // Close neighbours
                 if(currentPosition.DistanceSquaredTo(neighbour.WorldPosition) < closePerceptionRadius2)
                 {
-                    Separation = currentPosition - neighbour.WorldPosition;
+                    Separation += currentPosition - neighbour.WorldPosition;
 
                     ++CloseNeighbourCount;
                 }
@@ -325,7 +352,7 @@ public class Critter : RigidBody
 
         float distance = currentPosition.DistanceSquaredTo(attractionPoint);
 
-        if(distance > 500.0f)
+        if(distance > 1500.0f)
         {
             ComeBack = (attractionPoint - currentPosition) - currentPosition;
         }

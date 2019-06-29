@@ -3,18 +3,23 @@ using System;
 
 public class CritterDeets : Control
 {
-    private Camera camera;
+    private MainCamera camera;
     private Label label;
     private Critter critter;
 
     public override void _Ready()
     {
-        camera = (Camera)this.GetNode("/root/Main/MainCamera");
+        camera = (MainCamera)this.GetNode("/root/Main/MainCamera");
         label = (Label)GetNode("Label");
     }
 
     public override void _Process(float delta)
     {
+        if(Input.IsActionJustPressed("follow"))
+        {
+            camera.FollowCritter = !camera.FollowCritter;
+        }
+
         if(critter != null)
         {
             string text = "";
@@ -26,6 +31,11 @@ public class CritterDeets : Control
             text += $"\nComeBack: {critter.ComeBack}";
 
             label.SetText(text);
+
+            if(camera.FollowCritter)
+            {
+                camera.TargetTransform = critter.Transform;
+            }
         }
         else
         {

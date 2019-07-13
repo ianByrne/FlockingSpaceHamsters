@@ -12,8 +12,8 @@ public class Main : Spatial
         Input.SetMouseMode(Input.MouseMode.Captured);
 
         // Spawn some critters and obstacles
-        int critterCount = 30;
-        int obstacleCount = 70;
+        int critterCount = 70;
+        int obstacleCount = 20;
 
         Random rnd = new Random();
         critterScene = (PackedScene)ResourceLoader.Load("res://Scenes/Critter.tscn");

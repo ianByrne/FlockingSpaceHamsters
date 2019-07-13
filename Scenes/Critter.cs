@@ -1,10 +1,10 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /*
-TODO: Add obstacles, sort out mystery crashes and errors, get tighter flocks with less crashes (more responsive to avoidance?)
-I don't really trust the current obstacle avoidance or separation logic.
+TODO: I think the obstacle/neighbour detection (dot product bit) isn't really working
 */
 
 public class Critter : RigidBody
@@ -12,7 +12,7 @@ public class Critter : RigidBody
     private const float maxSpeed = 10.0f;
     private const float maxForce = 0.01f;
     private const float perceptionRadius = 25.0f;
-    private const float closePerceptionRadius = 11.0f;
+    private const float closePerceptionRadius = 7.0f;
     private const float perceptionRadius2 = perceptionRadius * perceptionRadius;
     private const float closePerceptionRadius2 = closePerceptionRadius * closePerceptionRadius;
 
@@ -21,6 +21,7 @@ public class Critter : RigidBody
     public Vector3 Separation { get; private set; }
     public Vector3 ComeBack { get; private set; }
     public int NeighbourCount { get { return neighbours.Count; } }
+    public int ObstacleCount { get { return obstacles.Count; } }
     public int CloseNeighbourCount { get; private set; }
 
     private IList<Neighbour> neighbours;
@@ -45,7 +46,7 @@ public class Critter : RigidBody
 
     public override void _PhysicsProcess(float delta)
     {
-        GetNeighboursAndObstacles();
+        GetNeighboursAndObstaclesViaDistance();
     }
     
     public override void _IntegrateForces(PhysicsDirectBodyState state)
@@ -60,8 +61,14 @@ public class Critter : RigidBody
         var currentQuat = state.Transform.basis.Quat();
         var headingQuat = state.Transform.LookingAt(desiredPosition, Vector3.Up).basis.Quat();
 
+        bool isStuck = obstacles.Where(obstacle => this.Transform.origin.DistanceSquaredTo(obstacle) < 1).ToList().Count > 0;
+
         var force = maxForce;
-        if(obstacles.Count > 0)
+        if(obstacles.Count > 0 && isStuck)
+        {
+            force = 1.0f;
+        }
+        else if(ObstacleCount > 0 || CloseNeighbourCount > 0)
         {
             force = 0.05f;
         }
@@ -88,12 +95,12 @@ public class Critter : RigidBody
 
     public void SetSelected(bool selected)
     {
-        this.GetNode<MeshInstance>("perceptionMesh").SetVisible(selected);
+        this.GetNode<MeshInstance>("perceptionBubbleMesh").SetVisible(selected);
         this.GetNode<MeshInstance>("closePerceptionBubbleMesh").SetVisible(selected);
         this.GetNode<ImmediateGeometry>("desiredPositionLine").SetVisible(selected);
     }
 
-    private void CreatePerceptionMesh()
+    private void CreatePerceptionPyramidMesh()
     {
         var material = new SpatialMaterial();
         material.FlagsTransparent = true;
@@ -195,6 +202,25 @@ public class Critter : RigidBody
         this.AddChild(meshInstance);
     }
 
+    private void CreatePerceptionMesh()
+    {
+        var material = new SpatialMaterial();
+        material.FlagsTransparent = true;
+        material.AlbedoColor = new Color(0.0f, 1.0f, 0.0f, 0.02f);
+
+        var mesh = new SphereMesh();
+        mesh.Material = material;
+        mesh.Radius = perceptionRadius;
+        mesh.Height = perceptionRadius * 2.0f;
+
+        var meshInstance = new MeshInstance();
+        meshInstance.Mesh = mesh;
+        meshInstance.SetName("perceptionBubbleMesh");
+        meshInstance.SetVisible(false);
+
+        this.AddChild(meshInstance);
+    }
+
     private void CreateClosePerceptionMesh()
     {
         var material = new SpatialMaterial();
@@ -224,7 +250,58 @@ public class Critter : RigidBody
         this.AddChild(line);
     }
 
-    private void GetNeighboursAndObstacles()
+    private void GetNeighboursAndObstaclesViaDistance()
+    {
+        neighbours = new List<Neighbour>();
+        obstacles = new List<Vector3>();
+
+        // TO DO: Optimise this (quad trees? Line of sight?)
+        var allCritters = GetTree().GetNodesInGroup("critters");
+        var allObstacles = GetTree().GetNodesInGroup("obstacles");
+
+        foreach(Critter critter in allCritters)
+        {
+            if(this == critter)
+            {
+                continue;
+            }
+
+            // n . (a - p) > 0 == object is in front
+            // If the dot product of the forward tangent vector (plane normal) and the difference between the two positions is > 0,
+            // it means the critter is in front of this one. Maybe.
+            var normal = -this.Transform.basis.z;
+            bool isInFront = normal.Dot(critter.Transform.origin - this.Transform.origin) > 0;
+
+            if(isInFront && critter.Transform.origin.DistanceSquaredTo(this.Transform.origin) <= perceptionRadius2)
+            {
+                neighbours.Add(new Neighbour(critter));
+            }
+        }
+
+        var spaceState = GetWorld().DirectSpaceState;
+
+        foreach(Obstacle obstacle in allObstacles)
+        {
+            // n . (a - p) > 0 == object is in front
+            // If the dot product of the forward tangent vector (plane normal) and the difference between the two positions is > 0,
+            // it means the critter is in front of this one. Maybe.
+            var normal = -this.Transform.basis.z;
+            bool isInFront = normal.Dot(obstacle.Transform.origin - this.Transform.origin) > 0;
+
+            if(isInFront && obstacle.Transform.origin.DistanceSquaredTo(this.Transform.origin) <= closePerceptionRadius2)
+            {
+                // Cast ray to object's origin to find where it hits
+                var rayResult = spaceState.IntersectRay(this.Transform.origin, obstacle.Transform.origin);
+
+                if(rayResult.Count > 0)
+                {
+                    obstacles.Add((Vector3)rayResult["position"]);
+                }
+            }
+        }
+    }
+
+    private void GetNeighboursAndObstaclesViaMesh()
     {
         neighbours = new List<Neighbour>();
         obstacles = new List<Vector3>();

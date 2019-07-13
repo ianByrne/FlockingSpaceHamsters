@@ -25,13 +25,13 @@ transform = Transform( 0.879498, 0.0427904, 0.473975, -0.190879, -0.880611, 0.43
 shadow_enabled = true
 
 [node name="MainCamera" type="Camera" parent="."]
-transform = Transform( -1, 0, -1.50996e-007, 0, 1, 0, 1.50996e-007, 0, -1, 0, 0, -50 )
+transform = Transform( -1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, 0, 0, -50 )
 fov = 45.0
 far = 500.0
 script = ExtResource( 2 )
 
 [node name="Crosshair" type="MeshInstance" parent="MainCamera"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14809e-008, 0, -0.142254 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14809e-08, 0, -0.142254 )
 mesh = SubResource( 2 )
 material/0 = null
 
@@ -70,4 +70,3 @@ margin_bottom = 590.0
 custom_colors/font_color = Color( 0.764706, 0, 0, 1 )
 custom_colors/font_outline_modulate = Color( 0.45098, 0, 0, 1 )
 valign = 2
-

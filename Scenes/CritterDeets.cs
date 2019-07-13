@@ -24,6 +24,7 @@ public class CritterDeets : Control
         {
             string text = "";
             text += $"CloseNeighbours/Neighbours: {critter.CloseNeighbourCount}/{critter.NeighbourCount}";
+            text += $"\nObstacles: {critter.ObstacleCount}";
             text += $"\nPosition: {critter.Transform.origin}";
             text += $"\nAlignment: {critter.Alignment}";
             text += $"\nCohesion: {critter.Cohesion}";

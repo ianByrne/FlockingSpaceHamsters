@@ -1,6 +1,6 @@
 # Flocking Space Hamsters
 
-My first experiments with the [Godot game engine](https://godotengine.org/). The plan was to implement a basic flocking algorithm on some space hamsters. Kind of achieved that, I guess.
+My first experiments with the [Godot game engine](https://godotengine.org/). The plan was to implement a basic [boids/flocking algorithm](https://en.wikipedia.org/wiki/Boids) on some space hamsters - they will attempt to zoom about space together, whilst avoiding asteroid obstacles.
 
 ![Flocking Space Hamsters screenshot](/screenshot.png?raw=true "Flocking Space Hamsters screenshot")
 

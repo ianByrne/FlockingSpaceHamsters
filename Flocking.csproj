@@ -57,6 +57,8 @@
     <Compile Include="Model\Neighbour.cs" />
     <Compile Include="Scenes\Obstacle.cs" />
     <Compile Include="Scenes\Pause.cs" />
+    <Compile Include="Scenes\Player.cs" />
+    <Compile Include="Scenes\PlayerCamera.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

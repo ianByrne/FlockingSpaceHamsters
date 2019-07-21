@@ -1,27 +1,25 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Scenes/Obstacle.cs" type="Script" id=1]
+[ext_resource path="res://Assets/asteroid.obj" type="ArrayMesh" id=2]
+[ext_resource path="res://Assets/textures/gravel-stone-004_r.png" type="Texture" id=3]
 
 [sub_resource type="PhysicsMaterial" id=1]
 
-[sub_resource type="SpatialMaterial" id=2]
-albedo_color = Color( 0.741176, 0.811765, 0.403922, 1 )
+[sub_resource type="SphereShape" id=2]
+margin = 0.13
+radius = 3.5
 
-[sub_resource type="CubeMesh" id=3]
-material = SubResource( 2 )
-
-[sub_resource type="BoxShape" id=4]
-extents = Vector3( 3, 2, 1 )
+[sub_resource type="SpatialMaterial" id=3]
+albedo_texture = ExtResource( 3 )
 
 [node name="Obstacle" type="StaticBody"]
 physics_material_override = SubResource( 1 )
 script = ExtResource( 1 )
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 3, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0 )
-mesh = SubResource( 3 )
-material/0 = null
-
 [node name="CollisionShape" type="CollisionShape" parent="."]
-shape = SubResource( 4 )
+shape = SubResource( 2 )
 
+[node name="asteroid" type="MeshInstance" parent="."]
+mesh = ExtResource( 2 )
+material/0 = SubResource( 3 )

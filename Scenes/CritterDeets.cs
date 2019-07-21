@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public class CritterDeets : Control
 {
@@ -17,6 +18,7 @@ public class CritterDeets : Control
     {
         if(Input.IsActionJustPressed("follow"))
         {
+            critter = (Critter)GetTree().GetNodesInGroup("critters").FirstOrDefault();
             camera.FollowCritter = !camera.FollowCritter;
         }
 
@@ -31,7 +33,7 @@ public class CritterDeets : Control
             text += $"\nSeparation: {critter.Separation}";
             text += $"\nComeBack: {critter.ComeBack}";
 
-            label.SetText(text);
+            // label.SetText(text);
 
             if(camera.FollowCritter)
             {

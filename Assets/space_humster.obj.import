@@ -1,0 +1,18 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/space_humster.obj-75a3123dd2438eb141a0e32af968dd4c.mesh"
+
+[deps]
+
+files=[ "res://.import/space_humster.obj-75a3123dd2438eb141a0e32af968dd4c.mesh" ]
+
+source_file="res://Assets/space_humster.obj"
+dest_files=[ "res://.import/space_humster.obj-75a3123dd2438eb141a0e32af968dd4c.mesh", "res://.import/space_humster.obj-75a3123dd2438eb141a0e32af968dd4c.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+optimize_mesh=true

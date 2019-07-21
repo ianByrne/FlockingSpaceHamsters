@@ -1,20 +1,17 @@
 using Godot;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-
-/*
-TODO: I think the obstacle/neighbour detection (dot product bit) isn't really working
-*/
 
 public class Critter : RigidBody
 {
     private const float maxSpeed = 10.0f;
     private const float maxForce = 0.01f;
+    private const float comeBackDistance = 38.0f;
     private const float perceptionRadius = 25.0f;
     private const float closePerceptionRadius = 7.0f;
     private const float perceptionRadius2 = perceptionRadius * perceptionRadius;
     private const float closePerceptionRadius2 = closePerceptionRadius * closePerceptionRadius;
+    private const float comeBackDistance2 = comeBackDistance * comeBackDistance;
 
     public Vector3 Cohesion { get; private set; }
     public Vector3 Alignment { get; private set; }
@@ -258,6 +255,7 @@ public class Critter : RigidBody
         // TO DO: Optimise this (quad trees? Line of sight?)
         var allCritters = GetTree().GetNodesInGroup("critters");
         var allObstacles = GetTree().GetNodesInGroup("obstacles");
+        // var player = this.GetNode<Player>("/root/player").GlobalTransform.origin;
 
         foreach(Critter critter in allCritters)
         {
@@ -429,7 +427,7 @@ public class Critter : RigidBody
 
         float distance = currentPosition.DistanceSquaredTo(attractionPoint);
 
-        if(distance > 1500.0f)
+        if(distance > comeBackDistance2)
         {
             ComeBack = (attractionPoint - currentPosition) - currentPosition;
         }
